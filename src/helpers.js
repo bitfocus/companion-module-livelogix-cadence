@@ -51,7 +51,7 @@ function parseDuration(input) {
 		return Math.round(secs)
 	}
 	const n = Number(s)
-	return Number.isFinite(n) ? Math.round(n) : null
+	return Number.isFinite(n) && n >= 0 ? Math.round(n) : null
 }
 
 // "14:30", "2:30 PM", "2:30:15pm", "9am" → seconds since midnight (null if bad).
@@ -130,7 +130,15 @@ function endpoints(config) {
 }
 
 // Turn a failed state pull into an operator-actionable message + status.
-function describeFailure(config, { httpStatus, error, network } = {}) {
+function describeFailure(config, { httpStatus, error, network, notCadence } = {}) {
+	const where = config?.host ? ` at ${config.host}:${config.port || 8730}` : ''
+	if (notCadence) {
+		// Something answered on that port, but not with Cadence's reply.
+		return {
+			status: Status.BadConfig,
+			message: `That isn't Cadence${where} — the reply wasn't Cadence's. Check the port (Cadence's app port is 8730).`,
+		}
+	}
 	if (httpStatus === 404 && config?.scope !== 'page') {
 		return {
 			status: Status.BadConfig,
@@ -140,7 +148,6 @@ function describeFailure(config, { httpStatus, error, network } = {}) {
 	}
 	if (error) return { status: Status.BadConfig, message: error } // Cadence refused (e.g. switched off)
 	if (httpStatus) return { status: Status.ConnectionFailure, message: `HTTP ${httpStatus}` }
-	const where = config?.host ? ` at ${config.host}:${config.port || 8730}` : ''
 	return {
 		status: Status.ConnectionFailure,
 		message: `No response from Cadence${where}${network ? ` (${network})` : ''}. Is Cadence open on that Mac? Don't have it yet? cadence.livelogix.app`,
@@ -225,7 +232,7 @@ const methods = {
 			}
 			// Pull fresh state immediately so buttons reflect the change without
 			// waiting for the next poll tick.
-			this.poll()
+			if (!this.destroyed) this.poll()
 			return ack
 		} catch (e) {
 			this.log('error', `Command failed: ${e.message}`)
@@ -255,14 +262,15 @@ const methods = {
 						.map((p) => `${p.id}~${p.label}~${p.time}`)
 						.join('|')}`,
 			),
-			ids(s.schedules),
+			// The Planning Center link decides the LIVE presets and the schedule dropdown.
+			ids(s.schedules, (x) => `${x.id}:${x.pco ? 'pco' : ''}`),
 			ids(s.schedulers),
 			ids(s.scenes),
 			ids(s.messages),
 			ids(s.automations),
 			ids(s.cueStacks, (c) => c.clock),
 			ids(s.polls),
-			ids(s.outputs),
+			ids(s.outputs, (o) => `${o.id}:${o.kind ?? ''}`), // the kind is in the dropdown label
 		].join(';;')
 	},
 

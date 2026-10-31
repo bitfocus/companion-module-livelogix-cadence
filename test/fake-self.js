@@ -1,8 +1,8 @@
 // A stand-in for the Companion instance: the module's REAL helper methods
 // (choices, sendCommand, …) on top of recorders for the Companion API calls.
 // Lets tests build definitions and invoke action callbacks with no Companion.
-const { methods, normalizeSnapshot } = require('../helpers')
-const { definitionMethods } = require('../definitions')
+const { methods, normalizeSnapshot } = require('../src/helpers')
+const { definitionMethods } = require('../src/definitions')
 
 function makeFakeSelf(snapshot, { port } = {}) {
 	const self = {
@@ -59,6 +59,10 @@ async function runAction(self, actionId, options = {}) {
 	const opts = {}
 	for (const o of def.options || []) if ('default' in o) opts[o.id] = o.default
 	Object.assign(opts, options)
+	// Like Companion: variables in useVariables fields are filled in before the
+	// callback runs (the module itself never expands them again).
+	for (const o of def.options || [])
+		if (o.useVariables && typeof opts[o.id] === 'string') opts[o.id] = await self.parseVariablesInString(opts[o.id])
 	await def.callback({ actionId, options: opts })
 }
 

@@ -4,11 +4,11 @@ const { test, before, after, beforeEach } = require('node:test')
 const assert = require('node:assert/strict')
 const { startMockCadence } = require('./mock-cadence')
 const { makeFakeSelf, runAction, runFeedback } = require('./fake-self')
-const { setActions } = require('../actions')
-const { setFeedbacks } = require('../feedbacks')
-const { setPresets } = require('../presets')
-const { initVariables, updateVariables } = require('../variables')
-const { parseTimeOfDay, parseDuration } = require('../helpers')
+const { setActions } = require('../src/actions')
+const { setFeedbacks } = require('../src/feedbacks')
+const { setPresets } = require('../src/presets')
+const { initVariables, updateVariables } = require('../src/variables')
+const { parseTimeOfDay, parseDuration } = require('../src/helpers')
 const FIXTURE = require('./fixture-snapshot.json')
 
 let mock, self
@@ -38,7 +38,10 @@ test('parsers', () => {
 	assert.equal(parseTimeOfDay('noon'), null)
 	assert.equal(parseDuration('1:30'), 90)
 	assert.equal(parseDuration('1:2:3:4'), null)
-	assert.equal(parseDuration('-5'), -5)
+	// A duration can't be negative, typed either way (the review's L5).
+	assert.equal(parseDuration('-5'), null)
+	assert.equal(parseDuration('-5:00'), null)
+	assert.equal(parseDuration('300'), 300)
 })
 
 test('timer: set remaining / end at / till / slot / undo', async () => {

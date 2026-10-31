@@ -4,7 +4,7 @@
 	"name": "livelogix-cadence",
 	"shortname": "Cadence",
 	"description": "Control LiveLogix Cadence, the countdown clock and show timer for Mac: timers, run-of-show schedules, cue stacks, audience polls, messages, scenes and cue lights, with live time, status and tally feedback. Cadence drives displays, the web, NDI, SDI, vMix and wall clocks from one synced engine. Free beta at cadence.livelogix.app",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"license": "MIT",
 	"repository": "git+https://github.com/bitfocus/companion-module-livelogix-cadence.git",
 	"bugs": "https://github.com/bitfocus/companion-module-livelogix-cadence/issues",
@@ -19,7 +19,7 @@
 		"type": "node22",
 		"api": "nodejs-ipc",
 		"apiVersion": "1.14.1",
-		"entrypoint": "../main.js"
+		"entrypoint": "../src/main.js"
 	},
 	"manufacturer": "LiveLogix",
 	"products": ["Cadence"],

@@ -37,15 +37,15 @@ Bump `version` in `package.json`, commit, tag `vX.Y.Z`, push, then submit the ta
 
 | File                      | Role                                                                                                                      |
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `main.js`                 | Companion lifecycle + polling (thin)                                                                                      |
-| `helpers.js`              | state normalisation, parsers, connection-status transitions, `sendCommand`, choice/find helpers — mixed onto the instance |
-| `definitions.js`          | rebuild definitions / push values — mixed onto the instance                                                               |
-| `config.js`               | connection settings (host / port / poll interval)                                                                         |
-| `actions.js`              | control commands                                                                                                          |
-| `feedbacks.js`            | button styling from live state                                                                                            |
-| `variables.js`            | live readouts (table-driven per entity)                                                                                   |
-| `presets.js`              | ready-made buttons                                                                                                        |
-| `test/`                   | mock Cadence, fake instance, fixture snapshot, node:test suites                                                           |
+| `src/main.js`             | Companion lifecycle + polling (thin)                                                                                      |
+| `src/helpers.js`          | state normalisation, parsers, connection-status transitions, `sendCommand`, choice/find helpers — mixed onto the instance |
+| `src/definitions.js`      | rebuild definitions / push values — mixed onto the instance                                                               |
+| `src/config.js`           | connection settings (host / port / poll interval)                                                                         |
+| `src/actions.js`          | control commands                                                                                                          |
+| `src/feedbacks.js`        | button styling from live state                                                                                            |
+| `src/variables.js`        | live readouts (table-driven per entity)                                                                                   |
+| `src/presets.js`          | ready-made buttons                                                                                                        |
+| `test/`                   | mock Cadence, fake instance, fixture snapshot, node:test suites, `test-harness.js` smoke, `roundtrip-test.js`             |
 | `companion/manifest.json` | Companion module manifest                                                                                                 |
 | `companion/HELP.md`       | in-app help                                                                                                               |
 

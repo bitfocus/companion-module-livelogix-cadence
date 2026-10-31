@@ -2,8 +2,8 @@
 // per-segment buttons always match Cadence's screen.
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
-const { clockSegments } = require('../helpers')
-const { segmentText } = require('../feedbacks')
+const { clockSegments } = require('../src/helpers')
+const { segmentText } = require('../src/feedbacks')
 const { makeFakeSelf, runFeedback } = require('./fake-self')
 const FIXTURE = require('./fixture-snapshot.json')
 

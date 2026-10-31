@@ -22,9 +22,8 @@ function idField(label) {
 }
 
 async function resolveOverride(self, options) {
-	const raw = String(options.overrideId || '').trim()
-	if (!raw) return options.pick
-	return (await self.parseVariablesInString(raw)).trim()
+	// Companion has already put variables into the field (useVariables: true).
+	return String(options.overrideId || '').trim() || options.pick
 }
 
 function select(id, label, def, pairs) {
@@ -81,7 +80,7 @@ function setActions(self) {
 		callback: async (event) => {
 			const clock = await resolveOverride(self, event.options)
 			if (!clock) return
-			const raw = String(await self.parseVariablesInString(String(event.options.seconds))).trim()
+			const raw = String(event.options.seconds).trim()
 			if (raw === '') return
 			const seconds = Number(raw)
 			if (!Number.isFinite(seconds)) return
@@ -105,9 +104,11 @@ function setActions(self) {
 		callback: async (event) => {
 			const clock = await resolveOverride(self, event.options)
 			if (!clock) return
-			const seconds = parseDuration(await self.parseVariablesInString(String(event.options.value)))
+			const seconds = parseDuration(String(event.options.value))
 			if (seconds == null) return
-			await self.sendCommand({ action: 'setDuration', clock, seconds })
+			// Don't start the old duration if Cadence refused the new one.
+			const ack = await self.sendCommand({ action: 'setDuration', clock, seconds })
+			if (ack?.ok === false) return
 			if (event.options.thenStart) await self.sendCommand({ action: 'start', clock })
 		},
 	}
@@ -128,7 +129,7 @@ function setActions(self) {
 		callback: async (event) => {
 			const clock = await resolveOverride(self, event.options)
 			if (!clock) return
-			const seconds = parseDuration(await self.parseVariablesInString(String(event.options.value)))
+			const seconds = parseDuration(String(event.options.value))
 			if (seconds == null) return
 			await self.sendCommand({ action: 'setTime', clock, seconds })
 		},
@@ -151,7 +152,7 @@ function setActions(self) {
 		callback: async (event) => {
 			const clock = await resolveOverride(self, event.options)
 			if (!clock) return
-			const seconds = parseTimeOfDay(await self.parseVariablesInString(String(event.options.time)))
+			const seconds = parseTimeOfDay(String(event.options.time))
 			if (seconds == null) {
 				self.log('warn', `Not a time of day: "${event.options.time}"`)
 				return
@@ -183,7 +184,9 @@ function setActions(self) {
 				self.log('warn', `Timer ${clock} has nothing saved in slot ${Number(event.options.slot) + 1}`)
 				return
 			}
-			await self.sendCommand({ action: 'setDuration', clock, seconds })
+			// Don't start the old duration if Cadence refused the new one.
+			const ack = await self.sendCommand({ action: 'setDuration', clock, seconds })
+			if (ack?.ok === false) return
 			if (event.options.thenStart) await self.sendCommand({ action: 'start', clock })
 		},
 	}
@@ -215,7 +218,7 @@ function setActions(self) {
 		],
 		callback: async (event) => {
 			if (!event.options.shift) return
-			const value = Number(await self.parseVariablesInString(String(event.options.value)))
+			const value = Number(String(event.options.value))
 			if (!Number.isFinite(value) || value <= 0) return
 			await self.sendCommand({ action: 'shiftRate', id: event.options.shift, value })
 		},
@@ -315,7 +318,7 @@ function setActions(self) {
 		],
 		callback: async (event) => {
 			if (!event.options.schedule) return
-			const target = String(await self.parseVariablesInString(String(event.options.target))).trim()
+			const target = String(event.options.target).trim()
 			if (!target) return
 			if (event.options.by === 'row') {
 				const n = Number(target)
@@ -401,8 +404,10 @@ function setActions(self) {
 		callback: async (event) => {
 			const message = event.options.message
 			if (!message) return
-			const text = await self.parseVariablesInString(String(event.options.text || ''))
-			await self.sendCommand({ action: 'msgText', message, text })
+			const text = String(event.options.text || '')
+			// Don't put the old text on air if Cadence refused the new text.
+			const ack = await self.sendCommand({ action: 'msgText', message, text })
+			if (ack?.ok === false) return
 			if (event.options.show) await self.sendCommand({ action: 'msgVis', message, vis: 'shown' })
 		},
 	}
@@ -444,7 +449,7 @@ function setActions(self) {
 		callback: async (event) => {
 			const automation = event.options.automation
 			if (!automation) return
-			const t = parseTimeOfDay(await self.parseVariablesInString(String(event.options.time)))
+			const t = parseTimeOfDay(String(event.options.time))
 			if (t == null) return
 			await self.sendCommand({
 				action: 'autoTime',
@@ -492,9 +497,9 @@ function setActions(self) {
 		],
 		callback: async (event) => {
 			if (!event.options.clock) return
-			const seconds = parseDuration(await self.parseVariablesInString(String(event.options.value)))
+			const seconds = parseDuration(String(event.options.value))
 			if (seconds == null) return
-			const label = String(await self.parseVariablesInString(String(event.options.label || ''))).trim()
+			const label = String(event.options.label || '').trim()
 			const body = { action: 'stackAdd', clock: event.options.clock, seconds }
 			if (label) body.label = label
 			await self.sendCommand(body)
@@ -541,7 +546,7 @@ function setActions(self) {
 				label: 'Row number (1 = first) — supports variables',
 				default: '1',
 				useVariables: true,
-				isVisible: (o) => o.which === 'number',
+				isVisibleExpression: `$(options:which) == 'number'`,
 			},
 		],
 		callback: async (event) => {
@@ -568,7 +573,7 @@ function setActions(self) {
 					i = cues.length - 1
 					break
 				default: {
-					const n = Number(await self.parseVariablesInString(String(event.options.number)))
+					const n = Number(String(event.options.number))
 					if (!Number.isInteger(n) || n < 1 || n > cues.length) return
 					i = n - 1
 				}
@@ -623,7 +628,7 @@ function setActions(self) {
 		],
 		callback: async (event) => {
 			if (!event.options.poll) return
-			const n = Number(await self.parseVariablesInString(String(event.options.number)))
+			const n = Number(String(event.options.number))
 			if (!Number.isInteger(n) || n < 1) return
 			await self.sendCommand({ action: 'pollGo', poll: event.options.poll, index: n - 1 })
 		},
@@ -647,7 +652,7 @@ function setActions(self) {
 				default: 3,
 				min: 0,
 				max: 20,
-				isVisible: (o) => o.what === 'perPhone',
+				isVisibleExpression: `$(options:what) == 'perPhone'`,
 			},
 		],
 		callback: async (event) => {
@@ -688,7 +693,7 @@ function setActions(self) {
 				label: 'Rank (1 = most votes) — supports variables',
 				default: '1',
 				useVariables: true,
-				isVisible: (o) => o.what === 'rank',
+				isVisibleExpression: `$(options:what) == 'rank'`,
 			},
 		],
 		callback: async (event) => {
@@ -703,7 +708,7 @@ function setActions(self) {
 						p?.featured ? { action: 'pollUnfeature', poll } : { action: 'pollFeature', poll, n: 1 },
 					)
 				case 'rank': {
-					const n = Number(await self.parseVariablesInString(String(event.options.rank)))
+					const n = Number(String(event.options.rank))
 					if (!Number.isInteger(n) || n < 1) return
 					return self.sendCommand({ action: 'pollFeature', poll, n })
 				}

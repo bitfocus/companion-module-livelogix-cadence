@@ -4,12 +4,12 @@
 // deliberately malformed one, to prove Cadence rejects it gracefully.
 //
 //   node test-harness.js [port] [host] [show|page]   (default 8730 127.0.0.1 show)
-const { makeFakeSelf } = require('./test/fake-self')
-const { setActions } = require('./actions')
-const { setFeedbacks } = require('./feedbacks')
-const { setPresets } = require('./presets')
-const { initVariables, updateVariables } = require('./variables')
-const { LIST_KEYS, endpoints } = require('./helpers')
+const { makeFakeSelf } = require('./fake-self')
+const { setActions } = require('../src/actions')
+const { setFeedbacks } = require('../src/feedbacks')
+const { setPresets } = require('../src/presets')
+const { initVariables, updateVariables } = require('../src/variables')
+const { LIST_KEYS, endpoints } = require('../src/helpers')
 
 const PORT = Number(process.argv[2] || 8730)
 const HOST = process.argv[3] || '127.0.0.1'

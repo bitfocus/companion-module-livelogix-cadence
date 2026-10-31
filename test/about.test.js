@@ -4,9 +4,9 @@
 const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { makeFakeSelf } = require('./fake-self')
-const { setPresets } = require('../presets')
-const { describeFailure, Status } = require('../helpers')
-const { GetConfigFields } = require('../config')
+const { setPresets } = require('../src/presets')
+const { describeFailure, Status } = require('../src/helpers')
+const { GetConfigFields } = require('../src/config')
 const FIXTURE = require('./fixture-snapshot.json')
 
 test('presets: About Cadence + feature notes, as text presets with real links', () => {

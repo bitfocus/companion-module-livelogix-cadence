@@ -8,6 +8,7 @@ const { initVariables, updateVariables } = require('./variables')
 
 const definitionMethods = {
 	rebuildDefinitions() {
+		this._lastFeedbackKey = undefined // new definitions: check every feedback again
 		initVariables(this)
 		setActions(this)
 		setFeedbacks(this)
@@ -15,9 +16,14 @@ const definitionMethods = {
 		updateVariables(this)
 	},
 
-	// Push live values + re-evaluate feedbacks (every poll).
+	// Push live values (only the changed ones) and re-evaluate feedbacks — only
+	// when the snapshot or the connection changed (a paused show changes nothing).
 	refreshValues() {
 		updateVariables(this)
+		const { now, ...rest } = this.state
+		const key = `${this.connected ? 1 : 0}:${JSON.stringify(rest)}`
+		if (key === this._lastFeedbackKey) return
+		this._lastFeedbackKey = key
 		this.checkFeedbacks()
 	},
 }

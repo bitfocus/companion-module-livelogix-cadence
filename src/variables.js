@@ -297,6 +297,7 @@ const TIMER_VARS = [
 ]
 
 function initVariables(self) {
+	self._lastVarValues = {}
 	const defs = [
 		{ variableId: 'connection_state', name: 'Connection state (Online/Offline)' },
 		{ variableId: 'clock_status', name: 'Clock sync status' },
@@ -351,7 +352,9 @@ function updateVariables(self) {
 	// Offline: never leave a frozen countdown on a button — blank the live times.
 	if (!self.connected) {
 		for (const id of Object.keys(values)) {
-			if (/_(time|remaining_hms)$/.test(id)) values[id] = '--:--'
+			// Live clock times only — fixed times (an automation's trigger, a schedule's
+			// next start) keep their value.
+			if (/^(timer_\d+|clock_.+)_(time|remaining_hms)$/.test(id)) values[id] = '--:--'
 			else if (/^(timer|clock)_.*_(hh|mm|ss|ff)$/.test(id)) values[id] = '--'
 			else if (/^(timer|clock)_.*_(sign|ampm)$/.test(id)) values[id] = ''
 			else if (/_(remaining|countdown|progress)$/.test(id)) values[id] = ''
@@ -359,7 +362,17 @@ function updateVariables(self) {
 		}
 	}
 
-	self.setVariableValues(values)
+	// Send only what changed since the last push (every value goes again after a
+	// rebuild — initVariables clears the memory).
+	const last = self._lastVarValues || (self._lastVarValues = {})
+	const changed = {}
+	for (const [id, v] of Object.entries(values)) {
+		if (last[id] !== v) {
+			changed[id] = v
+			last[id] = v
+		}
+	}
+	if (Object.keys(changed).length) self.setVariableValues(changed)
 }
 
 module.exports = { initVariables, updateVariables, sanitize, fmtHMS, fmtDrift }

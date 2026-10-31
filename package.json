@@ -1,11 +1,11 @@
 {
 	"name": "companion-module-livelogix-cadence",
-	"version": "1.4.0",
-	"main": "main.js",
+	"version": "1.4.1",
+	"main": "src/main.js",
 	"type": "commonjs",
 	"scripts": {
 		"test": "node --test \"test/*.test.js\"",
-		"smoke": "node test-harness.js",
+		"smoke": "node test/test-harness.js",
 		"format": "prettier -w .",
 		"package": "companion-module-build"
 	},

@@ -5,8 +5,8 @@ const { test } = require('node:test')
 const assert = require('node:assert/strict')
 const { startMockCadence } = require('./mock-cadence')
 const { makeFakeSelf, runAction, runFeedback } = require('./fake-self')
-const { endpoints, describeFailure, Status } = require('../helpers')
-const { addScopeKeepingPageBehaviour } = require('../upgrades')
+const { endpoints, describeFailure, Status } = require('../src/helpers')
+const { addScopeKeepingPageBehaviour } = require('../src/upgrades')
 const FIXTURE = require('./fixture-snapshot.json')
 
 test('endpoints follow the scope (whole show is the default)', () => {
